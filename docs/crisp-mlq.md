@@ -38,5 +38,12 @@ los detecta. Esta ficha es el registro de esas decisiones: se versiona junto al 
 
 | Fecha | Decisión | Motivo |
 |---|---|---|
-| | Umbral de decisión elegido por costo, no 0.5 | Un FN cuesta el doble que un FP |
-| | El modelo se selecciona por F1 de validación cruzada | Test queda reservado para la evaluación final |
+| 2026-11-15 | `"None"` en `internet_service` se trata como categoría (`keep_default_na=False`) | Es "cliente sin internet", no un dato faltante; imputarlo distorsionaba 30 filas |
+| 2026-11-15 | El dataset crudo pasa por un contrato de datos antes de entrenar (23 checks) | Detener el pipeline si cambia el esquema o llegan valores imposibles |
+| 2026-11-15 | Preprocesamiento (StandardScaler + OneHotEncoder) dentro de un `Pipeline` de scikit-learn | La API ignoraba `contract_type` (misma probabilidad 0.8123 para Month-to-Month y Two Year): training-serving skew |
+| 2026-11-15 | Validación cruzada estratificada de 5 folds sobre train | Con 240 filas un solo split depende de la suerte; estratificar mantiene ~50 % de churn por fold |
+| 2026-11-15 | Se registra un baseline (`DummyClassifier`, siempre churn) en MLflow | F1 0.66 sin aprender nada: F1 solo no distingue un modelo útil de uno trivial |
+| 2026-11-15 | El modelo se selecciona por F1 de validación cruzada | Test queda reservado para la evaluación final |
+| 2026-11-15 | Se agrega `GradientBoostingClassifier` como cuarto candidato | Reto obligatorio: F1 CV 0.6476 ± 0.0761, ROC-AUC CV 0.6858; no supera a random_forest (0.6900), el elegido no cambia |
+| 2026-11-15 | Umbral de decisión elegido por costo, no 0.5 (umbral elegido: 0.30) | Un FN cuesta el doble que un FP; costo S/ 43.33 por cliente vs S/ 45.00 con 0.5 y S/ 50.00 contactando a todos |
+| 2026-11-15 | Promoción con aliases `@champion` / `@challenger` en lugar de stages | Los stages están deprecados; solo pasa a champion lo que supera el quality gate y no cuesta más que el champion vigente |

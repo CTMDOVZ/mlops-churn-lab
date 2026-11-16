@@ -84,3 +84,23 @@ uvicorn app.main:app --port 8000      # http://localhost:8000/docs
 |---|---|---|
 | 14.1 | 1 a 4: negocio y datos, preparación, modelado, evaluación | Contrato de datos, Pipeline de scikit-learn, validación cruzada, umbral por costo, modelo `@champion` |
 | 14.2 | 5 y 6: despliegue, monitoreo | API sin skew, imagen en Docker Hub, drift, reentrenamiento automático |
+
+## Laboratorio 14.1 · Reto obligatorio: cuarto modelo candidato
+
+Se agregó `GradientBoostingClassifier` (`n_estimators=100`, `max_depth=3`, `learning_rate=0.1`) en `src/train.py`:
+import, entrada `gradient_boosting` en `get_estimator` y nombre en `CANDIDATES`.
+
+Resultados de validación cruzada estratificada (5 folds, 240 clientes de train):
+
+| Modelo | F1 CV (media ± desv.) | ROC-AUC CV |
+|---|---|---|
+| baseline (siempre churn) | 0.6629 | — |
+| logistic | 0.6666 ± 0.0454 | 0.7315 |
+| **random_forest** | **0.6900 ± 0.0426** | **0.7326** |
+| xgboost | 0.6829 ± 0.0656 | 0.7100 |
+| gradient_boosting | 0.6476 ± 0.0761 | 0.6858 |
+
+**¿Cambia el modelo elegido?** No. `gradient_boosting` queda por debajo de random forest en F1 y ROC-AUC,
+e incluso por debajo del baseline en F1, con la mayor desviación entre folds. El modelo seleccionado
+por `cv_f1_mean` sigue siendo **random_forest**, que en test (umbral 0.30 elegido por costo) obtiene
+F1 0.7013, ROC-AUC 0.7989 y un costo de S/ 43.33 por cliente, y fue promovido a `@champion`.
